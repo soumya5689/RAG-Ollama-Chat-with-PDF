@@ -1,14 +1,12 @@
 import streamlit as st
 import logging
 import os
-import tempfile
 import shutil
 import pdfplumber
 import ollama
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -86,19 +84,23 @@ def get_llm(selected_model: str):
 def process_question(question: str, vector_db: FAISS, selected_model: str) -> str:
     logger.info(f"Processing question: {question} using model: {selected_model}")
     llm = get_llm(selected_model)
+    
+    # Define the query prompt template
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
-        template="""You are an AI language model assistant. Your task is to generate 3
-        different versions of the given user question to retrieve relevant documents from
-        a vector database. Provide these alternative questions separated by newlines.
+        template="""
         Original question: {question}""",
     )
 
+    # Create retriever with LLM for multiple query retrieval
     retriever = MultiQueryRetriever.from_llm(
         vector_db.as_retriever(), llm, prompt=QUERY_PROMPT
     )
 
-    template = """Answer the question as detailed as possible from the provided context.
+    # Define the answer template
+    template = """Answer the question as detailed as possible from the provided context only. 
+    Do not generate a factual answer if the information is not available. 
+    If you do not know the answer, respond with "I don’t know the answer as not sufficient information is provided in the PDF."
     Context:\n {context}?\n
     Question: \n{question}\n
     Answer:
@@ -106,6 +108,7 @@ def process_question(question: str, vector_db: FAISS, selected_model: str) -> st
 
     prompt = ChatPromptTemplate.from_template(template)
 
+    # Set up the chain with retriever and LLM
     chain = (
         {"context": retriever, "question": RunnablePassthrough()}
         | prompt
@@ -113,7 +116,13 @@ def process_question(question: str, vector_db: FAISS, selected_model: str) -> st
         | StrOutputParser()
     )
 
+    # Get the response from the chain
     response = chain.invoke(question)
+
+    # Check if the retrieved context is relevant or not
+    if "I don’t know the answer" in response or not response.strip():
+        return "I don’t know the answer as not sufficient information is provided in the PDF."
+
     logger.info("Question processed and response generated")
     return response
 
@@ -139,7 +148,7 @@ def delete_vector_db() -> None:
     st.rerun()
 
 def main():
-    st.subheader("🧠 Ollama Chat with PDF RAG", divider="gray", anchor=False)
+    st.subheader("🧠 Ollama Chat with PDF RAG -- Varun Soni", divider="gray", anchor=False)
 
     available_models = extract_model_names()
 
@@ -157,11 +166,18 @@ def main():
         )
 
     pdf_docs = col1.file_uploader(
-        "Upload your PDF Files and Click on the Submit & Process Button", 
+        "Upload your PDF Files", 
         accept_multiple_files=True
     )
 
-    submit_button = st.button("Submit & Process", key="submit_process")
+    # Submit and Delete buttons side by side
+    col_buttons = col1.columns([1, 1])
+    
+    with col_buttons[0]:
+        submit_button = st.button("Submit & Process", key="submit_process")
+
+    with col_buttons[1]:
+        delete_collection = st.button("⚠️ Delete collection", type="secondary")
 
     if submit_button and pdf_docs:
         with st.spinner("Processing..."):
@@ -174,15 +190,13 @@ def main():
         st.session_state["pdf_pages"] = pdf_pages
 
         zoom_level = col1.slider(
-            "Zoom Level", min_value=100, max_value=1000, value=700, step=50
+            "Zoom Level", min_value=100, max_value=1000, value=700, step=50, key="zoom_slider_1"
         )
 
         with col1:
             with st.container(height=410, border=True):
                 for page_image in pdf_pages:
                     st.image(page_image, width=zoom_level)
-
-    delete_collection = col1.button("⚠️ Delete collection", type="secondary")
 
     if delete_collection:
         delete_vector_db()
@@ -207,12 +221,12 @@ def main():
                                 prompt, st.session_state["vector_db"], selected_model
                             )
                             st.markdown(response)
+                            st.session_state["messages"].append(
+                                {"role": "assistant", "content": response}
+                            )
                         else:
-                            st.warning("Please upload and process a PDF file first.")
-
-                st.session_state["messages"].append(
-                    {"role": "assistant", "content": response}
-                )
+                            response = "Please upload and process a PDF file first."
+                            st.warning(response)
 
             except Exception as e:
                 st.error(e, icon="⚠️")
@@ -221,7 +235,7 @@ def main():
         # Ensure PDF viewer is retained
         if st.session_state.get("pdf_pages"):
             zoom_level = col1.slider(
-                "Zoom Level", min_value=100, max_value=1000, value=700, step=50
+                "Zoom Level", min_value=100, max_value=1000, value=700, step=50, key="zoom_slider_2"
             )
             with col1:
                 with st.container(height=410, border=True):
