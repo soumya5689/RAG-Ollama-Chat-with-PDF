@@ -78,16 +78,15 @@ Before running the application, make sure you have the following installed:
 2. Create a virtual environment:
 
    ```
-   python -m venv venv
-   source rag/bin/activate  # On Windows, use `rag\Scripts\activate`
+   python -m venv rag-ollama
+   source rag-ollama/bin/activate  # On Windows, use `rag-ollama\Scripts\activate`
    ```
 3. Install the required packages:
 
    ```
    pip install -r requirements.txt
    ```
-4. Create a `.env` file in the project root and add any necessary environment variables (e.g., API keys if needed).
-5. Pull the required Ollama models:
+4. Pull the required Ollama models:
    Make sure you have Ollama installed and running, then execute the following commands:
 
    ```
@@ -121,5 +120,5 @@ Before running the application, make sure you have the following installed:
 ## Troubleshooting
 
 - If you encounter any issues with Ollama or the language models, make sure Ollama is properly installed and running on your system.
-- Check that you have successfully pulled all required models (`nomic-embed-text`, `llama2`, and `mistral`).
+- Check that you have successfully pulled all required models (`nomic-embed-text`, `llama2`, `tinyllama` and `mistral`).
 - Check the console output for any error messages or logs that might help identify the problem.
