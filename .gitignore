@@ -1,7 +1,7 @@
 
-# Ignore files in faiss_index folder
-.faiss_index/
-.rag-ollama/
+faiss_index/
+rag-ollama/
+image/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

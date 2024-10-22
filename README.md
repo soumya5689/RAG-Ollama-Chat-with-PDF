@@ -12,7 +12,6 @@ This application is a Retrieval-Augmented Generation (RAG) system that allows us
 
 ![PDF Upload](MistralResponse.png)
 
-
 ## Model Used : tinyllama
 
 ![Question Answering](Question&Answer.png)
@@ -78,7 +77,7 @@ Before running the application, make sure you have the following installed:
 2. Create a virtual environment:
 
    ```
-   python -m venv venv
+   python -m venv rag-ollama
    source rag/bin/activate  # On Windows, use `rag\Scripts\activate`
    ```
 3. Install the required packages:
