@@ -15,6 +15,8 @@ Dynamic Model Selection: Allows users to select from a list of compatible chat m
 Document Visualization: Renders PDF pages as images within the UI for easy reference.
 Clean-up Functionality: Includes an option to delete the current vector collection and temporary files.
 
+![Alt text](screenshots/Screenshot 2025-09-19 090854.png)
+
 Prerequisites
 --------------
 Before running the application, ensure you have the following installed:
