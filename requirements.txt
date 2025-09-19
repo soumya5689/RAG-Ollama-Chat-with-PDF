@@ -8,4 +8,3 @@ langchain_community
 python-dotenv
 langchain_ollama
 faiss-cpu
-faiss-gpu
