@@ -28,6 +28,7 @@ ollama pull nomic-embed-text
 ollama pull <your-chosen-model>
 Replace <your-chosen-model> with a model name like llama3, mistral, or gemma.
 
+![Alt text]("screenshots/Screenshot 2025-09-19 082311.png")
 
 requirements.txt file that lists the necessary Python libraries:
 -------------------------------------------------------------
